@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <pthread.h>
 
-#include "serial.h" 	// Serial communication
+#include "target.h" 	// Target communication
 
-// serial I/O in thread ?? -> pas forcément en fait
+// serial I/O in thread ?? -> pas forcément en fait, si, il faut un thread pour écouter (et envoyer)
 // user I/O in main thread, commands are sent over serial by the thread which reads the commands
 // développer un sous-programme pour le contrôle du robot avec les flèches directionnelles
 // suivi de path gps
@@ -18,10 +19,10 @@
 /**
  * Constants
  **/
-#define MOTD				"gercomm v0.1 - CL manager for DFRobotShop Rover V2 control\nType help to view the documentation.\n"
-#define SERIAL_TARGET 		"/dev/ttyACM0"
-#define USERIN_BUFFER_LEN 	100
-#define SLEEP_CST			100
+#define MOTD					"gercomm v0.1 - CL manager for DFRobotShop Rover V2 control\nType help to view the documentation.\n"
+#define SERIAL_TARGET_DEFAULT	"/dev/ttyACM0"
+#define USERIN_BUFFER_LEN 		100
+#define SLEEP_CST				100
 
 /**
  * Header
@@ -31,16 +32,29 @@ void motd();
 
 void clinterp(int*,char*);
 
+void *txthread_loop(void *arg);
+
 /**
  * int main(void);
  * Main loop where program is initialized and user inputs are processed.
  **/
 int main(void) {
-	int 	loop = 1;
-	char 	userin[USERIN_BUFFER_LEN];
+	int 		loop = 1;
+	char 		userin[USERIN_BUFFER_LEN];
+	Target 		mytarget;
+	pthread_t 	txthread;
 	
 	// Welcome message
 	motd();
+	
+	// Initialize target structure
+	target_init(&mytarget,SERIAL_TARGET_DEFAULT);
+	
+	// Initialize TX thread
+	if(pthread_create(&txthread, NULL, txthread_loop, NULL) == -1) {
+		perror("pthread_create");
+		return EXIT_FAILURE;
+    }
 	
 	while(loop) {
 		// Wait for user input
@@ -58,10 +72,10 @@ int main(void) {
 		//quit(&loop);
 		
 		// Sleep for 100ms
-		usleep(SLEEP_CST);
+		usleep(SLEEP_CST*1000);
 	}
 	
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 // Application functions
@@ -93,7 +107,23 @@ void clinterp(int* loop,char* uinput) {
 		quit(loop);
 	} else if(strcmp(fname,"motd") == 0) {
 		motd();
+	} else if(strcmp(fname,"target") == 0) {
+		// Target related functions
 	} else {
-		printf("!Invalid command, type help for info.\n");
+		printf("?invalid command, type help for info\n");
 	}
+}
+
+// TX thread
+void *txthread_loop(void *arg) {
+	int txon = 1; //TODO: put this in the target structure
+	(void) arg;
+	
+	// while loop and then: if txon
+	while(txon) {
+		//printf("bonjour\n");
+		usleep(1000*1000);
+	}
+	
+	pthread_exit(NULL);
 }

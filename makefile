@@ -1,12 +1,12 @@
 # executable
-all : main.o serial.o
-		gcc main.o serial.o -o gercomm
+all : main.o target.o
+		gcc main.o target.o -o gercomm -lpthread
 		
-main.o : main.c serial.c
+main.o : main.c target.c
 		gcc -c main.c -o main.o
 
-serial.o : serial.c
-		gcc -c serial.c -o serial.o
+target.o : target.c
+		gcc -c target.c -o target.o
 
 #clinterp.o : clinterp.c
 #		gcc -c clinterp.c -o clinterp.o
