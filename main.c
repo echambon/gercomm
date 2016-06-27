@@ -5,6 +5,7 @@
 #include <pthread.h>
 
 #include "target.h" 	// Target communication
+#include "task.h" 		// Task to be executed by the target
 
 // serial I/O in thread ?? -> pas forcément en fait, si, il faut un thread pour écouter (et envoyer)
 // user I/O in main thread, commands are sent over serial by the thread which reads the commands
@@ -23,6 +24,7 @@
 #define SERIAL_TARGET_DEFAULT	"/dev/ttyACM0"
 #define USERIN_BUFFER_LEN 		100
 #define SLEEP_CST				100
+#define TASK_STACK_SIZE			10 		// Maximum number of planned tasks
 
 /**
  * Header
@@ -42,6 +44,7 @@ int main(void) {
 	int 		loop = 1;
 	char 		userin[USERIN_BUFFER_LEN];
 	Target 		mytarget;
+	Task 		mytasks[TASK_STACK_SIZE];
 	pthread_t 	txthread;
 	
 	// Welcome message
@@ -115,6 +118,7 @@ void clinterp(int* loop,char* uinput) {
 }
 
 // TX thread
+// manage task list and priorities here
 void *txthread_loop(void *arg) {
 	int txon = 1; //TODO: put this in the target structure
 	(void) arg;

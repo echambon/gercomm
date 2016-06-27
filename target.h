@@ -16,5 +16,5 @@ struct Target {
 	char buffer_recv[TARGET_BUFFER_LEN];
 };
 
-// Functions
+// Prototypes
 void target_init(Target*, char*);
